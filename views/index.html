@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Câu hỏi ôn tập Window/Linux</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
+    <style>
+        .question>h1 {
+            margin-bottom: 40px;
+            font-size: 40px;
+            font-weight: bold;
+        }
+        
+        .fucking_area {
+            position: absolute;
+            top: 48%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        
+        .form-check {
+            line-height: 2;
+        }
+        
+        .navigator {
+            margin-top: 40px;
+        }
+        
+        .btn-next {
+            width: 300px;
+        }
+        
+        .form-check-input {
+            margin-top: 0.7rem;
+        }
+        
+        .alert {
+            position: absolute;
+            top: -100px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 500px;
+        }
+        
+        .form-check-label {
+            user-select: none;
+        }
+        
+        .alert_animation {
+            animation-name: example;
+            animation-duration: .8s;
+        }
+        
+        @keyframes example {
+            0% {
+                top: -100px;
+            }
+            50% {
+                top: 0px;
+            }
+            100% {
+                top: 0px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="alert_area">
+        <div class="alert alert-success" id="true">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            <strong>Đúng dồi!</strong> Idol nó phải như thế.
+        </div>
+        <div class="alert alert-danger" id="fail">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            <strong>Sai!</strong> Chọn lại đáp án khác bạn nhó.
+        </div>
+    </div>
+    <div class="fucking_area">
+        <div class="question" id="question"></div>
+        <div class="answers" id="answers"></div>
+        <!-- <div class="navigator text-center">
+            <button class="btn btn-danger btn-next" onclick="nextQues()">Next &#8594;</button>
+        </div> -->
+    </div>
+    <script>
+        let ok = $("#true");
+        let fail = $("#fail");
+        let question = $("#question");
+        let answers = $("#answers");
+        let countTrue = 0;
+        let genAns = (obj) => {
+            return (`
+                <div class="form-check">
+                    <label class="form-check-label">
+                        <input type="radio" class="form-check-input" name="optradio" onclick="checkAnswer(${obj.quesNum},'A')">${obj.answer1}
+                    </label>
+                </div>
+                <div class="form-check">
+                    <label class="form-check-label">
+                        <input type="radio" class="form-check-input" name="optradio" onclick="checkAnswer(${obj.quesNum},'B')">${obj.answer2}
+                    </label>
+                </div>
+                <div class="form-check">
+                    <label class="form-check-label">
+                        <input type="radio" class="form-check-input" name="optradio" onclick="checkAnswer(${obj.quesNum},'C')">${obj.answer3}
+                    </label>
+                </div>
+                <div class="form-check">
+                    <label class="form-check-label">
+                        <input type="radio" class="form-check-input" name="optradio" onclick="checkAnswer(${obj.quesNum},'D')">${obj.answer4}
+                    </label>
+                </div>
+            `);
+        };
+        checkAnswer = (ques, ans) => {
+            let checkAns = $.ajax({
+                url: "http://localhost:8080/check",
+                method: "POST",
+                data: {
+                    ques: ques,
+                    ans: ans
+                }
+            });
+            checkAns.done(data => {
+                if (data == "OK") {
+                    ok.addClass("alert_animation");
+                    setTimeout(() => {
+                        ok.removeClass("alert_animation");
+                    }, 800);
+                    setTimeout(() => {
+                        nextQues();
+                    }, 850);
+                } else {
+                    fail.addClass("alert_animation");
+                    setTimeout(() => {
+                        fail.removeClass("alert_animation");
+                    }, 800);
+                }
+            });
+        }
+        nextQues = () => {
+            let fetchQues = $.ajax({
+                url: "http://localhost:8080/next",
+                method: "POST"
+            });
+            fetchQues.done(data => {
+                answers.empty();
+                question.html(`<h1>${data.question}</h1>`);
+                answers.append(genAns(data));
+            });
+        }
+        nextQues();
+    </script>
+</body>
+
+</html>
